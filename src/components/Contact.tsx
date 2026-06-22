@@ -21,15 +21,58 @@ export default function Contact({ onToast }: ContactProps) {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    const accessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
+
+    if (!accessKey) {
+      console.warn(
+        'VITE_WEB3FORMS_ACCESS_KEY is not defined. Using mock simulation mode. Add it to a .env file for live delivery.'
+      );
+      setTimeout(() => {
+        setIsSubmitting(false);
+        onToast(
+          'Form submitted (Simulation Mode)! Set VITE_WEB3FORMS_ACCESS_KEY in .env for email forwarding.',
+          'success'
+        );
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      }, 1000);
+      return;
+    }
+
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({
+          access_key: accessKey,
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+          from_name: `${formData.name} via Portfolio Contact`
+        })
+      });
+
+      const resData = await response.json();
+
+      if (resData.success) {
+        onToast('Message sent successfully! Keertan will review it shortly.', 'success');
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        onToast(resData.message || 'Something went wrong. Please try again.', 'error');
+      }
+    } catch (error) {
+      console.error('Form submission error:', error);
+      onToast('Failed to send message. Please check your network connection.', 'error');
+    } finally {
       setIsSubmitting(false);
-      onToast('Message sent successfully! Keertan will review it shortly.', 'success');
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 1500);
+    }
   };
 
   return (
