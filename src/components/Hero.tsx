@@ -1,134 +1,169 @@
 import { useEffect, useState } from 'react';
-import { createTimeline, stagger } from 'animejs';
-import Terminal from './Terminal';
-import AnimeGrid from './AnimeGrid';
+import { soundFX } from '../utils/audio';
 
 export default function Hero() {
-  const words = [
-    'Software Engineer',
-    'AI & Backend Developer',
-    'LangGraph Orchestrator',
-    'LeetCode Active Solver'
+  const [roleText, setRoleText] = useState('');
+  const roles = [
+    'AI & Full-Stack Software Engineer',
+    'Creator of MuseFlow AI (200+ Downloads)',
+    'FastAPI, LangGraph & React Native Architect',
+    'Microservices & AWS Cloud Specialist',
   ];
-  const [wordIndex, setWordIndex] = useState(0);
-  const [subtext, setSubtext] = useState('');
+  const [roleIndex, setRoleIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Typing effect loop
+  // Typewriter effect for developer titles
   useEffect(() => {
-    let timer: number;
-    const currentWord = words[wordIndex % words.length];
+    const currentFull = roles[roleIndex];
+    let speed = isDeleting ? 40 : 80;
 
-    const type = () => {
-      if (isDeleting) {
-        setSubtext((prev) => currentWord.substring(0, prev.length - 1));
-      } else {
-        setSubtext((prev) => currentWord.substring(0, prev.length + 1));
+    if (!isDeleting && charIndex === currentFull.length) {
+      speed = 2200; // Pause at full string
+    } else if (isDeleting && charIndex === 0) {
+      setIsDeleting(false);
+      setRoleIndex((prev) => (prev + 1) % roles.length);
+      speed = 400;
+    }
+
+    const timer = setTimeout(() => {
+      setRoleText(
+        isDeleting
+          ? currentFull.substring(0, charIndex - 1)
+          : currentFull.substring(0, charIndex + 1)
+      );
+
+      if (!isDeleting && charIndex < currentFull.length) {
+        setCharIndex((prev) => prev + 1);
+      } else if (!isDeleting && charIndex === currentFull.length) {
+        setIsDeleting(true);
+      } else if (isDeleting && charIndex > 0) {
+        setCharIndex((prev) => prev - 1);
       }
+    }, speed);
 
-      let speed = 100;
-      if (isDeleting) speed /= 2;
-
-      if (!isDeleting && subtext === currentWord) {
-        timer = setTimeout(() => setIsDeleting(true), 2000);
-      } else if (isDeleting && subtext === '') {
-        setIsDeleting(false);
-        setWordIndex((prev) => prev + 1);
-        timer = setTimeout(type, 500);
-      } else {
-        timer = setTimeout(type, speed);
-      }
-    };
-
-    timer = setTimeout(type, 100);
     return () => clearTimeout(timer);
-  }, [subtext, isDeleting, wordIndex]);
+  }, [charIndex, isDeleting, roleIndex]);
 
-  // Anime.js v4 entrance timeline sequence
-  useEffect(() => {
-    const tl = createTimeline({
-      defaults: {
-        duration: 1000,
-        ease: 'outExpo'
-      }
-    });
-
-    tl.add('.logo-letter', {
-      y: [80, 0],
-      opacity: [0, 1],
-      ease: 'outElastic(1, 0.7)',
-      duration: 1200,
-      delay: stagger(50)
-    })
-    .add('.hero-greeting', {
-      x: [-40, 0],
-      opacity: [0, 1],
-      duration: 800
-    }, '-=1000') // Overlaps with letter stagger
-    .add('.hero-subtitle', {
-      y: [20, 0],
-      opacity: [0, 1],
-      duration: 600
-    }, '-=600')
-    .add('.hero-desc', {
-      y: [20, 0],
-      opacity: [0, 1],
-      duration: 600
-    }, '-=400')
-    .add('.hero-cta', {
-      y: [20, 0],
-      opacity: [0, 1],
-      duration: 600
-    }, '-=400');
-  }, []);
-
-  const nameLetters = "KEERTAN B.J.".split('');
+  const scrollToSection = (id: string) => {
+    soundFX.playClick();
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
-    <section id="home" className="hero-section">
-      {/* Anime.js Background Grid Backdrop */}
-      <AnimeGrid />
+    <section id="hero" className="hero-section">
+      <div className="container hero-container">
+        <div className="hero-grid">
+          {/* Left Text Column */}
+          <div className="hero-content">
+            <div className="hero-badge reveal-on-scroll">
+              <span className="live-status-pulse"></span>
+              <span className="hero-badge-text">Available for Full-Stack & AI Roles</span>
+            </div>
 
-      <div className="hero-content container">
-        <div className="hero-text-area">
-          <p className="hero-greeting" style={{ opacity: 0 }}>Hi, my name is</p>
-          <h1 className="hero-name glitch" data-text="KEERTAN B.J.">
-            {nameLetters.map((char, index) => (
-              <span
-                key={index}
-                className="logo-letter"
-                style={{ display: 'inline-block', opacity: 0 }}
+            <h1 className="hero-title reveal-on-scroll">
+              Hi, I'm <span className="hero-name-highlight">KEERTAN B.J.</span>
+            </h1>
+
+            <div className="hero-typing-box reveal-on-scroll">
+              <span className="typing-prompt">&gt;&nbsp;</span>
+              <span className="typing-text">{roleText}</span>
+              <span className="typing-cursor">|</span>
+            </div>
+
+            <p className="hero-description reveal-on-scroll">
+              Information Science Engineer specializing in end-to-end full-stack architectures,
+              agentic AI pipelines with LangChain & LangGraph, and high-performance microservices.
+              Creator of <strong>MuseFlow AI</strong> — an AI music app reaching 200+ Android downloads in its first week.
+            </p>
+
+            {/* Glowing CTA Buttons */}
+            <div className="hero-actions reveal-on-scroll">
+              <button
+                className="btn btn-cyber-primary"
+                onClick={() => scrollToSection('projects')}
               >
-                {char === ' ' ? '\u00A0' : char}
-              </span>
-            ))}
-          </h1>
-          <h2 className="hero-subtitle" style={{ opacity: 0 }}>
-            I am a <span className="typing-text">{subtext}</span>
-            <span className="type-cursor">|</span>
-          </h2>
-          <p className="hero-desc" style={{ opacity: 0 }}>
-            A software engineer specializing in AI-native backend systems and production-grade web applications. I design scalable FastAPI microservices, construct multi-agent LangGraph pipelines, and architect high-performance, real-time architectures.
-          </p>
-          <div className="hero-cta" style={{ opacity: 0 }}>
-            <a href="#projects" className="btn btn-primary">
-              View Projects
-            </a>
-            <a href="#contact" className="btn btn-secondary">
-              Get In Touch
-            </a>
+                <span>EXPLORE PROJECTS</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              <button
+                className="btn btn-cyber-secondary"
+                onClick={() => scrollToSection('terminal')}
+              >
+                <span>LAUNCH TERMINAL</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="4 17 10 11 4 5" />
+                  <line x1="12" y1="19" x2="20" y2="19" />
+                </svg>
+              </button>
+
+              <button
+                className="btn btn-cyber-outline"
+                onClick={() => scrollToSection('contact')}
+              >
+                <span>CONTACT ME</span>
+              </button>
+            </div>
+
+            {/* Quick Metrics Bar */}
+            <div className="hero-metrics reveal-on-scroll">
+              <div className="metric-item">
+                <span className="metric-num">200+</span>
+                <span className="metric-label">App Downloads</span>
+              </div>
+              <div className="metric-divider"></div>
+              <div className="metric-item">
+                <span className="metric-num">23+</span>
+                <span className="metric-label">Public Repos</span>
+              </div>
+              <div className="metric-divider"></div>
+              <div className="metric-item">
+                <span className="metric-num">3</span>
+                <span className="metric-label">Deployed Apps</span>
+              </div>
+              <div className="metric-divider"></div>
+              <div className="metric-item">
+                <span className="metric-num">7.4</span>
+                <span className="metric-label">CGPA (B.E.)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Holographic Profile Photo Frame */}
+          <div className="hero-avatar-wrapper reveal-on-scroll">
+            <div className="hologram-card">
+              {/* Outer Rotating HUD Cyber Rings */}
+              <div className="holo-ring ring-1"></div>
+              <div className="holo-ring ring-2"></div>
+              <div className="holo-ring ring-3"></div>
+
+              {/* Photo Frame Container */}
+              <div className="holo-photo-container">
+                <img
+                  src="/keertan-photo.jpg"
+                  alt="Keertan B.J."
+                  className="holo-photo"
+                />
+                <div className="holo-overlay-scanline"></div>
+                <div className="holo-glare"></div>
+              </div>
+
+              {/* Holographic Status Badges */}
+              <div className="holo-tag holo-tag-top">
+                <span className="tag-icon">⚡</span> AI & Backend Engineer
+              </div>
+              <div className="holo-tag holo-tag-bottom">
+                <span className="tag-icon">📍</span> Bengaluru, India
+              </div>
+            </div>
           </div>
         </div>
-
-        <Terminal />
-      </div>
-      <div className="scroll-down-indicator">
-        <a href="#about" aria-label="Scroll Down">
-          <span className="mouse-icon">
-            <span className="mouse-wheel"></span>
-          </span>
-          <span className="scroll-arrow"></span>
-        </a>
       </div>
     </section>
   );

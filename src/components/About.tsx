@@ -1,113 +1,218 @@
-export default function About() {
-  return (
-    <section id="about" className="about-section section-padding reveal-on-scroll">
-      <div className="container">
-        <h2 className="section-title">
-          <span>01.</span> About Me
-        </h2>
-        <div className="about-grid">
-          <div className="about-text">
-            <p className="reveal-item">
-              I am a final-year Information Science and Engineering student at{' '}
-              <strong>PES College of Engineering, Mandya</strong> (graduating in 2026) with a passion for designing and building highly scalable backend architectures and AI-native applications.{' '}
-            </p>
-            <p className="reveal-item reveal-delay-1">
-              My experience spans across backend microservices (FastAPI, Node.js), event-driven sync (WebSockets, Socket.io), and multi-agent systems using LangChain and LangGraph. I thrive on solving complex algorithmic problems, actively maintaining a presence on{' '}
-              <a
-                href="https://leetcode.com/u/Keertan004"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-link"
-              >
-                LeetCode
-              </a>
-              , and writing clean, maintainable, and well-tested code.
-            </p>
-            <p className="reveal-item reveal-delay-2">
-              Whether it's designing normalized relational databases, optimizing SQL query performance, or building zero-human-intervention data collection pipelines, I aim to create robust software systems that deliver real-world business value.
-            </p>
+import { useState } from 'react';
+import { soundFX } from '../utils/audio';
 
-            <div className="stats-grid">
-              <div className="stat-card reveal-item reveal-delay-1">
-                <span className="stat-number">4+</span>
-                <span className="stat-label">Months Intern Experience</span>
+export default function About() {
+  const [activeTab, setActiveTab] = useState<'mindset' | 'setup' | 'philosophy' | 'languages'>('mindset');
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+
+  const handleTabChange = (tab: 'mindset' | 'setup' | 'philosophy' | 'languages') => {
+    soundFX.playClick();
+    setActiveTab(tab);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    setTilt({ x: -(y / 35), y: x / 35 });
+  };
+
+  const handleMouseLeave = () => {
+    setTilt({ x: 0, y: 0 });
+  };
+
+  return (
+    <section id="about" className="section-padding about-section">
+      <div className="container">
+        <div className="section-header reveal-on-scroll">
+          <span className="section-subtitle">BIOGRAPHY & CORE STACK</span>
+          <h2 className="section-title">
+            About <span className="text-gradient">Keertan B.J.</span>
+          </h2>
+          <div className="section-line"></div>
+        </div>
+
+        <div className="about-grid">
+          {/* Left Column: Interactive 3D Tilt Portrait Photo & Quick Info Card */}
+          <div className="about-left reveal-on-scroll">
+            <div
+              className="about-card-photo-wrapper reactive-tilt-card"
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              style={{
+                transform: `perspective(800px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+                transition: tilt.x === 0 ? 'transform 0.5s ease' : 'none',
+              }}
+            >
+              <div className="about-photo-frame">
+                <img
+                  src="/keertan-photo.jpg"
+                  alt="Keertan B.J. Portrait"
+                  className="about-profile-img"
+                />
+                <div className="photo-pulse-ring"></div>
               </div>
-              <div className="stat-card reveal-item reveal-delay-2">
-                <span className="stat-number">5+</span>
-                <span className="stat-label">Production & SaaS Projects</span>
-              </div>
-              <div className="stat-card reveal-item reveal-delay-3">
-                <span className="stat-number">Active</span>
-                <span className="stat-label">LeetCode Problem Solver</span>
-              </div>
-              <div className="stat-card reveal-item reveal-delay-4">
-                <span className="stat-number">7.4</span>
-                <span className="stat-label">B.E. CGPA (PESCE Mandya)</span>
+
+              <div className="about-quick-info">
+                <h3>Keertan B.J.</h3>
+                <p className="about-degree">B.E. Information Science & Engineering (2022 – 2026)</p>
+                <p className="about-college">PES College of Engineering, Mandya (CGPA: 7.4 / 10)</p>
+
+                <div className="about-contact-links">
+                  <a href="mailto:keertan004@gmail.com" className="about-link" onClick={() => soundFX.playClick()}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                      <polyline points="22,6 12,13 2,6" />
+                    </svg>
+                    keertan004@gmail.com
+                  </a>
+                  <a href="https://github.com/mad-man22" target="_blank" rel="noreferrer" className="about-link" onClick={() => soundFX.playClick()}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+                    </svg>
+                    github.com/mad-man22
+                  </a>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="about-image-wrapper reveal-item reveal-delay-2">
-            <div className="about-image-frame">
-              {/* SVG Avatar Representative */}
-              <svg viewBox="0 0 200 200" className="svg-avatar" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="avatar-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#00f2fe" />
-                    <stop offset="100%" stopColor="#4facfe" />
-                  </linearGradient>
-                  <linearGradient id="glow-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#4facfe" stopOpacity="0.8" />
-                    <stop offset="100%" stopColor="#00f2fe" stopOpacity="0.2" />
-                  </linearGradient>
-                  <clipPath id="circle-clip">
-                    <circle cx="100" cy="100" r="85" />
-                  </clipPath>
-                </defs>
-                {/* Background Glow */}
-                <circle
-                  cx="100"
-                  cy="100"
-                  r="95"
-                  fill="none"
-                  stroke="url(#glow-grad)"
-                  strokeWidth="4"
-                  strokeDasharray="10 5"
-                  className="rotating-ring"
-                />
-                <circle cx="100" cy="100" r="88" fill="#0f172a" stroke="url(#avatar-grad)" strokeWidth="2" />
+          {/* Right Column: Interactive Personality & Workstation Tabs */}
+          <div className="about-right reveal-on-scroll">
+            <div className="about-tabs-header">
+              <button
+                className={`tab-btn ${activeTab === 'mindset' ? 'active' : ''}`}
+                onClick={() => handleTabChange('mindset')}
+              >
+                🧠 Engineering Mindset
+              </button>
+              <button
+                className={`tab-btn ${activeTab === 'setup' ? 'active' : ''}`}
+                onClick={() => handleTabChange('setup')}
+              >
+                💻 Workstation & Tools
+              </button>
+              <button
+                className={`tab-btn ${activeTab === 'philosophy' ? 'active' : ''}`}
+                onClick={() => handleTabChange('philosophy')}
+              >
+                ⚡ Code Philosophy
+              </button>
+              <button
+                className={`tab-btn ${activeTab === 'languages' ? 'active' : ''}`}
+                onClick={() => handleTabChange('languages')}
+              >
+                🌐 Languages & Culture
+              </button>
+            </div>
 
-                {/* SVG Avatar Face Graphic */}
-                <g clipPath="url(#circle-clip)">
-                  <circle cx="100" cy="90" r="40" fill="#1e293b" />
-                  <rect
-                    x="75"
-                    y="80"
-                    width="22"
-                    height="15"
-                    rx="3"
-                    fill="none"
-                    stroke="url(#avatar-grad)"
-                    strokeWidth="3"
-                  />
-                  <rect
-                    x="103"
-                    y="80"
-                    width="22"
-                    height="15"
-                    rx="3"
-                    fill="none"
-                    stroke="url(#avatar-grad)"
-                    strokeWidth="3"
-                  />
-                  <line x1="97" y1="87" x2="103" y2="87" stroke="url(#avatar-grad)" strokeWidth="3" />
-                  <rect x="52" y="75" width="12" height="30" rx="6" fill="url(#avatar-grad)" />
-                  <rect x="136" y="75" width="12" height="30" rx="6" fill="url(#avatar-grad)" />
-                  <path d="M 58 75 A 45 45 0 0 1 142 75" fill="none" stroke="url(#avatar-grad)" strokeWidth="4" />
-                  <path d="M 50 160 C 50 130, 80 120, 100 120 C 120 120, 150 130, 150 160 Z" fill="#334155" />
-                  <path d="M 80 135 L 100 155 L 120 135" fill="none" stroke="url(#avatar-grad)" strokeWidth="2" />
-                </g>
-              </svg>
+            <div className="about-tab-content glass-panel">
+              {activeTab === 'mindset' && (
+                <div className="tab-pane fade-in">
+                  <h3 className="tab-pane-title">Full-Stack, AI & Systems Engineering</h3>
+                  <p>
+                    I specialize in building production-ready applications that combine smooth modern React/Next.js UIs
+                    with robust backend microservices in <strong>FastAPI, Node.js, and Express</strong>.
+                  </p>
+                  <p>
+                    During my 4-month backend engineering internship at <strong>Talencia Global</strong> (Jan 2026 – Apr 2026),
+                    I built multi-agent AI data pipelines with <strong>LangChain and LangGraph</strong> to automate complex data extraction,
+                    reducing manual processing overhead. I also containerized services with Docker, configured Jenkins CI/CD pipelines,
+                    and supported AWS EC2/VPC infrastructure.
+                  </p>
+                  <div className="mindset-tags">
+                    <span className="glow-tag">Multi-Agent AI</span>
+                    <span className="glow-tag">Microservices</span>
+                    <span className="glow-tag">AWS & Docker</span>
+                    <span className="glow-tag">WebSockets</span>
+                    <span className="glow-tag">WebRTC Jam Rooms</span>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'setup' && (
+                <div className="tab-pane fade-in">
+                  <h3 className="tab-pane-title">Developer Environment & Stack</h3>
+                  <p>
+                    My workflow is optimized for speed, code clarity, and autonomous AI-assisted software engineering.
+                  </p>
+                  <div className="setup-grid">
+                    <div className="setup-item">
+                      <span className="setup-label">IDEs & Editors:</span>
+                      <span className="setup-value">VS Code, Cursor AI, PyCharm</span>
+                    </div>
+                    <div className="setup-item">
+                      <span className="setup-label">OS & Terminal:</span>
+                      <span className="setup-value">Windows 11, WSL2 / Linux, PowerShell</span>
+                    </div>
+                    <div className="setup-item">
+                      <span className="setup-label">Container & CI/CD:</span>
+                      <span className="setup-value">Docker, Docker Compose, Jenkins CI</span>
+                    </div>
+                    <div className="setup-item">
+                      <span className="setup-label">API Testing:</span>
+                      <span className="setup-value">Postman, Swagger UI, FastAPI Redoc</span>
+                    </div>
+                    <div className="setup-item">
+                      <span className="setup-label">AI Agent Stack:</span>
+                      <span className="setup-value">LangChain, LangGraph, Ollama, Groq, Gemini API</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'philosophy' && (
+                <div className="tab-pane fade-in">
+                  <h3 className="tab-pane-title">Build to Scale. Design to Thrill.</h3>
+                  <ul className="philosophy-list">
+                    <li>
+                      <strong>Zero Latency Compromise:</strong> Utilize Redis caching, optimized SQL query indexing, and WebSocket stream sockets for real-time synchronization.
+                    </li>
+                    <li>
+                      <strong>Strict Schema Contracts:</strong> Enforce Pydantic types across microservices boundaries to detect integration issues before deployment.
+                    </li>
+                    <li>
+                      <strong>User-Centric Visuals:</strong> Believe that backend power should always be paired with a futuristic, responsive, and visually mesmerizing UI.
+                    </li>
+                    <li>
+                      <strong>Resilient Multi-Agent Workflows:</strong> Design AI systems with automated retries, validation layers, and fallback handlers.
+                    </li>
+                  </ul>
+                </div>
+              )}
+
+              {activeTab === 'languages' && (
+                <div className="tab-pane fade-in">
+                  <h3 className="tab-pane-title">Spoken Languages & Community Involvement</h3>
+                  <p>
+                    Communicating effectively across teams and contributing to developer communities:
+                  </p>
+                  <div className="lang-pills">
+                    <div className="lang-pill">
+                      <span className="lang-flag">🇬🇧</span>
+                      <span className="lang-name">English</span>
+                      <span className="lang-level">Full Professional</span>
+                    </div>
+                    <div className="lang-pill">
+                      <span className="lang-flag">🇮🇳</span>
+                      <span className="lang-name">Kannada</span>
+                      <span className="lang-level">Native / Fluent</span>
+                    </div>
+                    <div className="lang-pill">
+                      <span className="lang-flag">🇮🇳</span>
+                      <span className="lang-name">Hindi</span>
+                      <span className="lang-level">Conversational</span>
+                    </div>
+                  </div>
+
+                  <h4 className="community-heading">Activities & Leadership</h4>
+                  <ul className="community-list">
+                    <li><strong>HAXLR8 2.0 Hackathon:</strong> Active participant building rapid prototype solutions.</li>
+                    <li><strong>Bug Hunt Blitz Organiser:</strong> Led software debugging competitions for FOSS Club, PES College of Engineering.</li>
+                    <li><strong>FOSS Club Active Member:</strong> Promoting open-source software and Linux tools.</li>
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </div>

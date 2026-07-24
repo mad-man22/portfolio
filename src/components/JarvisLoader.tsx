@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { animate } from 'animejs';
+import { soundFX } from '../utils/audio';
 
 interface JarvisLoaderProps {
   onComplete: () => void;
@@ -7,47 +8,116 @@ interface JarvisLoaderProps {
 
 export default function JarvisLoader({ onComplete }: JarvisLoaderProps) {
   const [percent, setPercent] = useState(0);
-  const [logMsg, setLogMsg] = useState('INITIALIZING BOOT SEQUENCE...');
+  const [logMsg, setLogMsg] = useState('SYSTEM INIT: ENGAGING QUANTUM REACTOR...');
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  // Matrix Digital Rain Background Effect
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const chars = '010101010101KEERTAN0101FASTAPI0101LANGGRAPH0101MUSEFLOW0101AI';
+    const fontSize = 14;
+    const columns = Math.floor(canvas.width / fontSize);
+    const drops: number[] = Array(columns).fill(1);
+
+    let animationId: number;
+
+    const drawMatrix = () => {
+      ctx.fillStyle = 'rgba(5, 5, 12, 0.15)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#00f2fe';
+      ctx.font = `${fontSize}px monospace`;
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = chars.charAt(Math.floor(Math.random() * chars.length));
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
+
+        // Alternate glowing green/cyan/magenta text for matrix rain
+        if (i % 3 === 0) {
+          ctx.fillStyle = '#ff007f';
+        } else if (i % 5 === 0) {
+          ctx.fillStyle = '#39ff14';
+        } else {
+          ctx.fillStyle = '#00f2fe';
+        }
+
+        ctx.fillText(text, x, y);
+
+        if (y > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+
+      animationId = requestAnimationFrame(drawMatrix);
+    };
+
+    drawMatrix();
+
+    const handleResize = () => {
+      if (!canvas) return;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  // Loading Progress Logic
   useEffect(() => {
     let currentPercent = 0;
-    const duration = 2800; // ~2.8 seconds loading screen time
-    const intervalTime = 30; // 30ms step updates
+    const duration = 3000;
+    const intervalTime = 30;
     const totalSteps = duration / intervalTime;
     const stepIncrement = 100 / totalSteps;
+
+    const logs = [
+      { pct: 0, msg: '> BOOT SEQUENCE: INITIALIZING NEURAL CORE V3.0...' },
+      { pct: 15, msg: '> LOADING MICROSERVICES GATEWAY & FASTAPI ENDPOINTS...' },
+      { pct: 30, msg: '> SYNCING LANGCHAIN & LANGGRAPH AI MULTI-AGENTS...' },
+      { pct: 50, msg: '> MOUNTING MUSEFLOW WEBRTC P2P JAM ROOMS & AUDIO STREAM...' },
+      { pct: 70, msg: '> INJECTING HIGH-SPEED CANVAS PARTICLES & NEON SHADERS...' },
+      { pct: 85, msg: '> VERIFYING SECURE WEBSOCKET MATRIX PROTOCOLS...' },
+      { pct: 98, msg: '> HYPER-DRIVE ENGAGED. WELCOME TO KEERTAN.DEV PORTAL...' },
+    ];
 
     const timer = setInterval(() => {
       currentPercent += stepIncrement;
       const displayPercent = Math.min(100, Math.floor(currentPercent));
       setPercent(displayPercent);
 
-      // Log messages based on percentage thresholds
-      if (displayPercent < 20) {
-        setLogMsg('> LOADING JARVIS KERNEL SCHEMAS...');
-      } else if (displayPercent < 40) {
-        setLogMsg('> [OK] KERNEL LOADED. ASSEMBLING FastAPI microservices...');
-      } else if (displayPercent < 60) {
-        setLogMsg('> [OK] BACKEND APIS COMPILED. COMPILING LANGGRAPH COORDINATION...');
-      } else if (displayPercent < 80) {
-        setLogMsg('> [OK] AGENTIC RETRY SYSTEM ACTIVE. COMPILING SKILL ANALYZER...');
-      } else if (displayPercent < 95) {
-        setLogMsg('> [OK] ALL PORTAL HANDLERS READY. VERIFYING SECURE PROTOCOLS...');
-      } else {
-        setLogMsg('> SYSTEM ONLINE. LOADING KEERTAN.DEV PORTAL...');
+      soundFX.playTick(400 + displayPercent * 5);
+
+      const foundLog = [...logs].reverse().find((l) => displayPercent >= l.pct);
+      if (foundLog) {
+        setLogMsg(foundLog.msg);
       }
 
       if (currentPercent >= 100) {
         clearInterval(timer);
-        
-        // Execute exit slide/zoom animation on overlay
-        animate('.jarvis-loader-overlay', {
+        soundFX.playWarp();
+
+        // Warp out animation
+        animate('.quantum-loader-overlay', {
           opacity: 0,
-          scale: 1.15,
-          duration: 600,
-          ease: 'outExpo',
+          scale: 1.3,
+          duration: 700,
+          ease: 'easeOutExpo',
           complete: () => {
             onComplete();
-          }
+          },
         });
       }
     }, intervalTime);
@@ -55,133 +125,113 @@ export default function JarvisLoader({ onComplete }: JarvisLoaderProps) {
     return () => clearInterval(timer);
   }, [onComplete]);
 
-  // Generate horizontal lines for the hexagon scan area
-  const scanLines = [];
-  for (let y = 95; y <= 205; y += 3) {
-    scanLines.push(
-      <line
-        key={y}
-        x1={90}
-        y1={y}
-        x2={210}
-        y2={y}
-        stroke="#ff5f56"
-        strokeWidth={1}
-        opacity={0.35}
-        className="scanning-line"
-      />
-    );
-  }
-
   return (
-    <div className="jarvis-loader-overlay">
-      <div className="jarvis-hud-container">
-        <svg className="jarvis-hud" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+    <div className="quantum-loader-overlay">
+      <canvas ref={canvasRef} className="quantum-matrix-canvas" />
+
+      <div className="quantum-hud-center">
+        {/* Glowing Reactor Core SVG */}
+        <svg className="quantum-hud-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            {/* Neon Glow Filter */}
-            <filter id="hud-glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="4" result="blur" />
+            <filter id="neon-glow" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="5" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
-            
-            {/* Hexagon Area Clip Path */}
-            <clipPath id="hex-clip">
-              <polygon points="150,95 197.6,122.5 197.6,177.5 150,205 102.4,177.5 102.4,122.5" />
-            </clipPath>
+            <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#ff007f" />
+              <stop offset="50%" stopColor="#00f2fe" />
+              <stop offset="100%" stopColor="#39ff14" />
+            </linearGradient>
           </defs>
 
-          {/* Outer Segmented Ring (6 Color Zones) */}
-          <g filter="url(#hud-glow)">
-            {/* Red Arc */}
-            <circle cx="150" cy="150" r="130" stroke="#ff5f56" strokeWidth="4" strokeDasharray="115 700" fill="none" transform="rotate(0 150 150)" />
-            {/* Orange Arc */}
-            <circle cx="150" cy="150" r="130" stroke="#ffbd2e" strokeWidth="4" strokeDasharray="115 700" fill="none" transform="rotate(60 150 150)" />
-            {/* Green Arc */}
-            <circle cx="150" cy="150" r="130" stroke="#27c93f" strokeWidth="4" strokeDasharray="115 700" fill="none" transform="rotate(120 150 150)" />
-            {/* Cyan Arc */}
-            <circle cx="150" cy="150" r="130" stroke="#00f2fe" strokeWidth="4" strokeDasharray="115 700" fill="none" transform="rotate(180 150 150)" />
-            {/* Blue Arc */}
-            <circle cx="150" cy="150" r="130" stroke="#4facfe" strokeWidth="4" strokeDasharray="115 700" fill="none" transform="rotate(240 150 150)" />
-            {/* Purple Arc */}
-            <circle cx="150" cy="150" r="130" stroke="#a855f7" strokeWidth="4" strokeDasharray="115 700" fill="none" transform="rotate(300 150 150)" />
-          </g>
-
-          {/* Middle Dials & Ticks */}
-          <circle cx="150" cy="150" r="118" stroke="rgba(255,255,255,0.06)" strokeWidth="6" strokeDasharray="2 4" fill="none" />
-          <circle cx="150" cy="150" r="112" stroke="rgba(255,255,255,0.12)" strokeWidth="1" fill="none" />
-
-          {/* Rotating Dials */}
+          {/* Outer Laser Ring */}
           <circle
-            cx="150"
-            cy="150"
-            r="102"
-            stroke="#00f2fe"
-            strokeWidth="2"
-            strokeDasharray="80 300"
+            cx="200"
+            cy="200"
+            r="180"
+            stroke="url(#gradient1)"
+            strokeWidth="3"
+            strokeDasharray="20 10 40 10"
             fill="none"
-            className="spin-cw"
-            style={{ transformOrigin: 'center' }}
-            filter="url(#hud-glow)"
+            className="spin-cw-fast"
+            filter="url(#neon-glow)"
           />
+
+          {/* Concentric Neon Tech Rings */}
           <circle
-            cx="150"
-            cy="150"
-            r="96"
-            stroke="#ffbd2e"
-            strokeWidth="1.5"
-            strokeDasharray="140 200"
+            cx="200"
+            cy="200"
+            r="160"
+            stroke="#ff007f"
+            strokeWidth="2"
+            strokeDasharray="140 90"
             fill="none"
             className="spin-ccw"
-            style={{ transformOrigin: 'center' }}
-            filter="url(#hud-glow)"
+            filter="url(#neon-glow)"
           />
+
           <circle
-            cx="150"
-            cy="150"
-            r="90"
-            stroke="rgba(255,255,255,0.2)"
-            strokeWidth="1"
-            strokeDasharray="30 40 15 35"
+            cx="200"
+            cy="200"
+            r="140"
+            stroke="#00f2fe"
+            strokeWidth="2"
+            strokeDasharray="60 120 30 80"
             fill="none"
             className="spin-cw"
-            style={{ transformOrigin: 'center' }}
+            filter="url(#neon-glow)"
           />
 
-          {/* Center Hexagonal Scanning Grid */}
-          <g clipPath="url(#hex-clip)">
-            {/* Pulsating Hexagon Background Scanlines */}
-            {scanLines}
-          </g>
-          {/* Hexagon Border Outline */}
+          <circle
+            cx="200"
+            cy="200"
+            r="120"
+            stroke="#39ff14"
+            strokeWidth="1.5"
+            strokeDasharray="200 40"
+            fill="none"
+            className="spin-ccw-fast"
+            filter="url(#neon-glow)"
+          />
+
+          {/* Hexagonal Core Shield */}
           <polygon
-            points="150,95 197.6,122.5 197.6,177.5 150,205 102.4,177.5 102.4,122.5"
-            stroke="rgba(255, 95, 86, 0.4)"
-            strokeWidth="2"
-            fill="none"
+            points="200,100 270,140 270,220 200,260 130,220 130,140"
+            stroke="#7928ca"
+            strokeWidth="3"
+            fill="rgba(121, 40, 202, 0.15)"
+            filter="url(#neon-glow)"
+            className="pulse-glow"
           />
 
-          {/* Red HUD Scan Chart Waveform Curve (Dotted Path) */}
-          <path
-            d="M 105,190 Q 120,130 150,122 T 195,120"
-            fill="none"
-            stroke="#ff5f56"
-            strokeWidth="4"
-            strokeDasharray="1 6"
-            strokeLinecap="round"
-            filter="url(#hud-glow)"
-            className="hud-chart-path"
+          {/* Core Energy Waveform */}
+          <circle
+            cx="200"
+            cy="200"
+            r="60"
+            fill="rgba(0, 242, 254, 0.2)"
+            stroke="#00f2fe"
+            strokeWidth="3"
+            className="pulse-scale"
+            filter="url(#neon-glow)"
           />
         </svg>
 
-        {/* HUD Data Output Labels */}
-        <div className="jarvis-progress-label">
-          <span className="jarvis-glitch">{percent}%</span>
+        {/* Center Percentage Display */}
+        <div className="quantum-status-box">
+          <div className="quantum-percent-glitch" data-text={`${percent}%`}>
+            {percent}%
+          </div>
+          <div className="quantum-sub-tag">QUANTUM DRIVE</div>
         </div>
-        <div className="jarvis-log-console">
-          <p className="jarvis-log-msg">{logMsg}</p>
+
+        {/* Terminal Diagnostic Message Log */}
+        <div className="quantum-terminal-log">
+          <span className="quantum-blink-dot"></span>
+          <p className="quantum-log-text">{logMsg}</p>
         </div>
       </div>
     </div>

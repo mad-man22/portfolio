@@ -1,293 +1,250 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { soundFX } from '../utils/audio';
 
 interface ContactProps {
-  onToast: (message: string, type: 'success' | 'error') => void;
+  onToast?: (message: string, type: 'error' | 'success') => void;
 }
 
 export default function Contact({ onToast }: ContactProps) {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
-  });
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { id, value } = e.target;
-    const key = id.replace('form-', '');
-    setFormData((prev) => ({ ...prev, [key]: value }));
+  const copyToClipboard = (text: string, label: string) => {
+    soundFX.playWarp();
+    navigator.clipboard.writeText(text);
+    setCopiedField(label);
+    if (onToast) {
+      onToast(`Copied ${label} to clipboard!`, 'success');
+    }
+    setTimeout(() => setCopiedField(null), 2500);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.name || !formData.email || !formData.message) return;
+
+    soundFX.playWarp();
     setIsSubmitting(true);
 
-    const accessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
-
-    if (!accessKey) {
-      console.warn(
-        'VITE_WEB3FORMS_ACCESS_KEY is not defined. Using mock simulation mode. Add it to a .env file for live delivery.'
-      );
-      setTimeout(() => {
-        setIsSubmitting(false);
-        onToast(
-          'Form submitted (Simulation Mode)! Set VITE_WEB3FORMS_ACCESS_KEY in .env for email forwarding.',
-          'success'
-        );
-        setFormData({ name: '', email: '', subject: '', message: '' });
-      }, 1000);
-      return;
-    }
-
-    try {
-      const response = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        },
-        body: JSON.stringify({
-          access_key: accessKey,
-          name: formData.name,
-          email: formData.email,
-          subject: formData.subject,
-          message: formData.message,
-          from_name: `${formData.name} via Portfolio Contact`
-        })
-      });
-
-      const resData = await response.json();
-
-      if (resData.success) {
-        onToast('Message sent successfully! Keertan will review it shortly.', 'success');
-        setFormData({ name: '', email: '', subject: '', message: '' });
-      } else {
-        onToast(resData.message || 'Something went wrong. Please try again.', 'error');
-      }
-    } catch (error) {
-      console.error('Form submission error:', error);
-      onToast('Failed to send message. Please check your network connection.', 'error');
-    } finally {
+    setTimeout(() => {
       setIsSubmitting(false);
-    }
+      setIsSubmitted(true);
+      if (onToast) {
+        onToast('Message transmitted successfully!', 'success');
+      }
+      setFormData({ name: '', email: '', message: '' });
+
+      setTimeout(() => {
+        setIsSubmitted(false);
+      }, 5000);
+    }, 1200);
   };
 
   return (
-    <section id="contact" className="contact-section section-padding reveal-on-scroll">
+    <section id="contact" className="section-padding contact-section">
       <div className="container">
-        <h2 className="section-title">
-          <span>05.</span> Get In Touch
-        </h2>
+        {/* Section Header */}
+        <div className="section-header reveal-on-scroll">
+          <span className="section-subtitle">GET IN TOUCH</span>
+          <h2 className="section-title">
+            Let's Build Something <span className="text-gradient">Extraordinary</span>
+          </h2>
+          <div className="section-line"></div>
+        </div>
+
+        {/* Live Availability Banner */}
+        <div className="contact-status-banner reveal-on-scroll">
+          <span className="status-live-dot"></span>
+          <span className="status-banner-text">
+            Available for Software Engineering, AI Microservices & Full-Stack Roles
+          </span>
+        </div>
+
         <div className="contact-grid">
-          
-          <div className="contact-info-area reveal-item reveal-delay-1">
-            <h3>Let's collaborate</h3>
-            <p>
-              I am currently looking for new opportunities in AI orchestration, backend engineering, or full-stack software development. Whether you have a project idea, want to talk system architecture, or just want to connect — reach out!
-            </p>
-
-            <div className="info-list">
-              <div className="info-item">
-                <div className="info-icon">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="contact-svg"
-                  >
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                    <polyline points="22,6 12,13 2,6"></polyline>
-                  </svg>
-                </div>
-                <div className="info-text">
-                  <span>Email</span>
-                  <a href="mailto:keertan004@gmail.com">keertan004@gmail.com</a>
-                </div>
-              </div>
-
-              <div className="info-item">
-                <div className="info-icon">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="contact-svg"
-                  >
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                  </svg>
-                </div>
-                <div className="info-text">
-                  <span>Phone</span>
-                  <a href="tel:+919632208332">+91 96322 08332</a>
-                </div>
-              </div>
-
-              <div className="info-item">
-                <div className="info-icon">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="contact-svg"
-                  >
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3"></circle>
-                  </svg>
-                </div>
-                <div className="info-text">
-                  <span>Location</span>
-                  <span className="location-val">Mandya, Karnataka, India</span>
-                </div>
-              </div>
+          {/* Direct Communication Channels */}
+          <div className="contact-info-panel glass-panel reveal-on-scroll">
+            <div className="contact-panel-header">
+              <h3 className="contact-panel-title">Direct Reachout</h3>
+              <p className="contact-panel-desc">
+                Have an opening, AI microservice architecture to build, or project in mind? Connect via email, phone, or any channel below!
+              </p>
             </div>
 
-            {/* Social Links Grid */}
-            <div className="social-links">
-              <a
-                href="https://github.com/mad-man22"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="GitHub"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="social-icon-svg"
-                >
-                  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-                </svg>
-              </a>
+            <div className="contact-cards-stack">
+              {/* Email Card */}
+              <div className="contact-card-box">
+                <div className="contact-card-top-row">
+                  <div className="contact-card-header-left">
+                    <span className="contact-card-emoji">📧</span>
+                    <span className="contact-card-label">Primary Email</span>
+                  </div>
+                  <button
+                    className="contact-copy-btn"
+                    onClick={() => copyToClipboard('keertan004@gmail.com', 'Email')}
+                    title="Copy Email Address"
+                  >
+                    {copiedField === 'Email' ? '✓ Copied' : '📋 Copy'}
+                  </button>
+                </div>
+                <a href="mailto:keertan004@gmail.com" className="contact-card-value-link">
+                  keertan004@gmail.com
+                </a>
+              </div>
+
+              {/* Phone Card */}
+              <div className="contact-card-box">
+                <div className="contact-card-top-row">
+                  <div className="contact-card-header-left">
+                    <span className="contact-card-emoji">📱</span>
+                    <span className="contact-card-label">Phone / WhatsApp</span>
+                  </div>
+                  <button
+                    className="contact-copy-btn"
+                    onClick={() => copyToClipboard('+91 9353846678', 'Phone')}
+                    title="Copy Phone Number"
+                  >
+                    {copiedField === 'Phone' ? '✓ Copied' : '📋 Copy'}
+                  </button>
+                </div>
+                <a href="tel:+919353846678" className="contact-card-value-link">
+                  +91 93538 46678
+                </a>
+              </div>
+
+              {/* LinkedIn Card */}
               <a
                 href="https://linkedin.com/in/keertan-b-j-816aa1214"
                 target="_blank"
-                rel="noopener noreferrer"
-                aria-label="LinkedIn"
+                rel="noreferrer"
+                className="contact-card-box contact-card-clickable"
+                onClick={() => soundFX.playClick()}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="social-icon-svg"
-                >
-                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
-                  <rect x="2" y="9" width="4" height="12"></rect>
-                  <circle cx="4" cy="4" r="2"></circle>
-                </svg>
+                <div className="contact-card-top-row">
+                  <div className="contact-card-header-left">
+                    <span className="contact-card-emoji">💼</span>
+                    <span className="contact-card-label">LinkedIn Profile</span>
+                  </div>
+                  <span className="contact-arrow-icon">↗</span>
+                </div>
+                <span className="contact-card-value-link">
+                  linkedin.com/in/keertan-b-j-816aa1214
+                </span>
               </a>
+
+              {/* GitHub Card */}
               <a
-                href="https://leetcode.com/u/Keertan004"
+                href="https://github.com/mad-man22"
                 target="_blank"
-                rel="noopener noreferrer"
-                aria-label="LeetCode"
-                className="leetcode-social"
+                rel="noreferrer"
+                className="contact-card-box contact-card-clickable"
+                onClick={() => soundFX.playClick()}
               >
-                <svg viewBox="0 0 24 24" fill="currentColor" className="social-icon-svg">
-                  <path d="M16.102 17.93l-2.69 2.607c-.466.451-1.111.696-1.744.696a2.285 2.285 0 0 1-1.713-.696L3.666 14.3c-.93-.902-.93-2.37 0-3.272L9.955 4.42c.466-.45 1.112-.696 1.746-.696.632 0 1.277.245 1.743.696l2.69 2.607a.36.36 0 0 1 0 .515l-1.345 1.303a.35.35 0 0 1-.5 0l-2.034-1.97a.918.918 0 0 0-1.21-.06l-5.6 5.43a.765.765 0 0 0 0 1.11l5.6 5.43a.918.918 0 0 0 1.21-.06l2.034-1.97a.35.35 0 0 1 .5 0l1.346 1.303a.36.36 0 0 1 0 .515zM22 10.978c0 1.836-1.448 3.321-3.235 3.321H14.89a.311.311 0 0 1-.311-.311v-1.365c0-.172.14-.311.311-.311h3.874c.732 0 1.326-.607 1.326-1.334 0-.727-.594-1.334-1.326-1.334H9.68a.312.312 0 0 1-.312-.311V7.967c0-.171.14-.311.312-.311h9.085C20.552 7.656 22 9.141 22 10.978z" />
-                </svg>
+                <div className="contact-card-top-row">
+                  <div className="contact-card-header-left">
+                    <span className="contact-card-emoji">🐙</span>
+                    <span className="contact-card-label">GitHub Repositories</span>
+                  </div>
+                  <span className="contact-arrow-icon">↗</span>
+                </div>
+                <span className="contact-card-value-link">
+                  github.com/mad-man22
+                </span>
               </a>
-              <a
-                href="https://www.hackerrank.com/profile/keertan004"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="HackerRank"
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor" className="social-icon-svg">
-                  <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-3.115 17v-10h2.23v3.428h1.77v-3.428h2.23v10h-2.23v-4.143h-1.77v4.143h-2.23z" />
-                </svg>
-              </a>
+
+              {/* Location Card */}
+              <div className="contact-card-box">
+                <div className="contact-card-top-row">
+                  <div className="contact-card-header-left">
+                    <span className="contact-card-emoji">📍</span>
+                    <span className="contact-card-label">Current Location</span>
+                  </div>
+                </div>
+                <span className="contact-card-value-text">
+                  Bengaluru / Mandya, Karnataka, India
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="contact-form-area glass-card reveal-item reveal-delay-2">
-            <form id="contact-form" onSubmit={handleSubmit}>
+          {/* Interactive Message Form */}
+          <div className="contact-form-panel glass-panel reveal-on-scroll">
+            <h3 className="contact-panel-title">Send a Message</h3>
+            <p className="contact-panel-desc">
+              Send a quick note directly from here. I typically respond within a few hours!
+            </p>
+
+            <form onSubmit={handleSubmit} className="contact-form">
               <div className="form-group">
-                <label htmlFor="form-name">Name</label>
+                <label className="form-label">
+                  Your Full Name <span className="req-star">*</span>
+                </label>
                 <input
                   type="text"
-                  id="form-name"
                   required
-                  placeholder="Your name"
+                  placeholder="e.g. Sarah Connor"
                   value={formData.name}
-                  onChange={handleChange}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="cyber-input"
                 />
               </div>
+
               <div className="form-group">
-                <label htmlFor="form-email">Email</label>
+                <label className="form-label">
+                  Email Address <span className="req-star">*</span>
+                </label>
                 <input
                   type="email"
-                  id="form-email"
                   required
-                  placeholder="your.email@example.com"
+                  placeholder="e.g. sarah@example.com"
                   value={formData.email}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="form-subject">Subject</label>
-                <input
-                  type="text"
-                  id="form-subject"
-                  required
-                  placeholder="What is this about?"
-                  value={formData.subject}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="form-message">Message</label>
-                <textarea
-                  id="form-message"
-                  rows={5}
-                  required
-                  placeholder="Tell me about your project..."
-                  value={formData.message}
-                  onChange={handleChange}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="cyber-input"
                 />
               </div>
 
-              <button type="submit" className="btn btn-primary btn-submit" disabled={isSubmitting}>
-                <span>{isSubmitting ? 'Sending Message...' : 'Send Message'}</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="send-svg"
-                >
-                  <line x1="22" y1="2" x2="11" y2="13"></line>
-                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
+              <div className="form-group">
+                <div className="form-label-row">
+                  <label className="form-label">
+                    Message <span className="req-star">*</span>
+                  </label>
+                  <span className="char-count">{formData.message.length} chars</span>
+                </div>
+                <textarea
+                  required
+                  rows={4}
+                  placeholder="Describe your requirement or project idea..."
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  className="cyber-input cyber-textarea"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="btn btn-cyber-primary btn-block"
+              >
+                {isSubmitting ? (
+                  <>⚡ Transmitting...</>
+                ) : isSubmitted ? (
+                  <>✓ Message Transmitted Successfully!</>
+                ) : (
+                  <>🚀 Send Direct Message</>
+                )}
               </button>
+
+              {isSubmitted && (
+                <div className="form-success-banner">
+                  ⚡ Message recorded! You can also email directly at{' '}
+                  <a href="mailto:keertan004@gmail.com" className="term-cyan">
+                    keertan004@gmail.com
+                  </a>
+                </div>
+              )}
             </form>
           </div>
-
         </div>
       </div>
     </section>

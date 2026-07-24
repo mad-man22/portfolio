@@ -1,136 +1,165 @@
 import { useState, useEffect } from 'react';
+import { soundFX } from '../utils/audio';
 
 export default function Navbar() {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('home');
+  const [scrolled, setScrolled] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
-      // Toggle sticky styles
-      setIsScrolled(window.scrollY > 50);
-
-      // Scroll Progress Bar calculation
-      const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
-      if (totalScroll > 0) {
-        setScrollProgress((window.scrollY / totalScroll) * 100);
-      }
-
-      // Scroll Spy highlighting logic
-      const sections = ['home', 'about', 'experience', 'projects', 'skills', 'certifications', 'contact'];
-      const scrollPosition = window.scrollY + 200; // Offset threshold
-
-      for (const section of sections) {
-        const el = document.getElementById(section);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPosition >= top && scrollPosition < top + height) {
-            setActiveSection(section);
-            break;
-          }
-        }
+      setScrolled(window.scrollY > 40);
+      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalHeight > 0) {
+        setScrollProgress((window.scrollY / totalHeight) * 100);
       }
     };
-
     window.addEventListener('scroll', handleScroll);
-    // Initial call to set active states
-    handleScroll();
-
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const toggleMobileNav = () => {
-    setIsMobileOpen((prev) => !prev);
+  const toggleSound = () => {
+    const next = !soundEnabled;
+    setSoundEnabled(next);
+    soundFX.enabled = next;
+    if (next) soundFX.playClick();
   };
 
-  const closeMobileNav = () => {
-    setIsMobileOpen(false);
+  const navTo = (id: string) => {
+    soundFX.playClick();
+    setMenuOpen(false);
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
-    <header>
-      {/* Scroll Progress Bar */}
-      <div className="scroll-progress-container">
-        <div
-          className="scroll-progress-bar"
-          style={{ width: `${scrollProgress}%` }}
-        />
-      </div>
+    <header className={`navbar-header ${scrolled ? 'navbar-scrolled' : ''}`}>
+      {/* Top Scroll Progress Line */}
+      <div className="top-scroll-progress" style={{ width: `${scrollProgress}%` }} />
 
-      <nav className={`glass-nav ${isScrolled ? 'scrolled' : ''}`} id="main-nav">
-        <div className="nav-container">
-          <a href="#home" className="logo" onClick={closeMobileNav}>
-            <span className="logo-bracket">&lt;</span>Keertan
-            <span className="logo-accent">.dev</span>
-            <span className="logo-bracket">/&gt;</span>
-          </a>
-          
-          <div className={`nav-links ${isMobileOpen ? 'active' : ''}`} id="nav-links">
-            <a
-              href="#about"
-              className={`nav-item ${activeSection === 'about' ? 'active' : ''}`}
-              onClick={closeMobileNav}
-            >
-              <span>01.</span>About
-            </a>
-            <a
-              href="#experience"
-              className={`nav-item ${activeSection === 'experience' ? 'active' : ''}`}
-              onClick={closeMobileNav}
-            >
-              <span>02.</span>Timeline
-            </a>
-            <a
-              href="#projects"
-              className={`nav-item ${activeSection === 'projects' ? 'active' : ''}`}
-              onClick={closeMobileNav}
-            >
-              <span>03.</span>Projects
-            </a>
-            <a
-              href="#skills"
-              className={`nav-item ${activeSection === 'skills' ? 'active' : ''}`}
-              onClick={closeMobileNav}
-            >
-              <span>04.</span>Skills
-            </a>
-            <a
-              href="#certifications"
-              className={`nav-item ${activeSection === 'certifications' ? 'active' : ''}`}
-              onClick={closeMobileNav}
-            >
-              <span>05.</span>Certificates
-            </a>
-            <a
-              href="#contact"
-              className={`nav-item ${activeSection === 'contact' ? 'active' : ''}`}
-              onClick={closeMobileNav}
-            >
-              <span>06.</span>Contact
-            </a>
-            <a
-              href="#terminal-section"
-              className="nav-item btn-terminal-nav"
-              onClick={closeMobileNav}
-            >
-              Console
-            </a>
+      <div className="container navbar-container">
+        {/* Brand Logo */}
+        <div className="navbar-brand" onClick={() => navTo('hero')}>
+          <div className="brand-photo-badge">
+            <img src="/keertan-photo.jpg" alt="Keertan B.J." className="brand-img" />
           </div>
+          <span className="brand-text">
+            KEERTAN<span className="brand-dot">.DEV</span>
+          </span>
+        </div>
+
+        {/* Desktop Links */}
+        <nav className="desktop-nav">
+          <button onClick={() => navTo('about')} className="nav-link">
+            About
+          </button>
+          <button onClick={() => navTo('experience')} className="nav-link">
+            Experience
+          </button>
+          <button onClick={() => navTo('projects')} className="nav-link">
+            Projects
+          </button>
+          <button onClick={() => navTo('skills')} className="nav-link">
+            Skills
+          </button>
+          <button onClick={() => navTo('beyond')} className="nav-link">
+            Beyond Code
+          </button>
+          <button onClick={() => navTo('terminal')} className="nav-link">
+            Terminal
+          </button>
+          <button onClick={() => navTo('certifications')} className="nav-link">
+            Certs
+          </button>
+          <button onClick={() => navTo('contact')} className="nav-link nav-btn-cta">
+            Contact
+          </button>
+        </nav>
+
+        {/* Right Controls: SFX Button & Mobile Menu Toggle */}
+        <div className="navbar-controls">
+          <button
+            className={`sound-toggle-btn ${soundEnabled ? 'active' : 'muted'}`}
+            onClick={toggleSound}
+            title={soundEnabled ? 'Mute Sci-Fi Audio' : 'Enable Sci-Fi Audio'}
+          >
+            <span className="sfx-icon">{soundEnabled ? '🔊' : '🔇'}</span>
+            <span className="sfx-text">{soundEnabled ? 'SFX ON' : 'SFX OFF'}</span>
+          </button>
 
           <button
-            className={`mobile-nav-toggle ${isMobileOpen ? 'active' : ''}`}
-            id="mobile-toggle"
-            onClick={toggleMobileNav}
-            aria-label="Toggle Navigation"
+            className="mobile-burger-btn"
+            onClick={() => {
+              soundFX.playClick();
+              setMenuOpen(!menuOpen);
+            }}
+            aria-label="Toggle Navigation Menu"
           >
-            <span className="bar"></span>
-            <span className="bar"></span>
-            <span className="bar"></span>
+            {menuOpen ? (
+              <span className="close-x-icon">✕</span>
+            ) : (
+              <>
+                <span className="burger-line"></span>
+                <span className="burger-line"></span>
+                <span className="burger-line"></span>
+              </>
+            )}
           </button>
         </div>
-      </nav>
+      </div>
+
+      {/* Mobile Drawer Menu UI */}
+      {menuOpen && (
+        <div className="mobile-menu-overlay">
+          <div className="mobile-menu-content">
+            <div className="mobile-menu-header">
+              <div className="navbar-brand" onClick={() => navTo('hero')}>
+                <div className="brand-photo-badge">
+                  <img src="/keertan-photo.jpg" alt="Keertan B.J." className="brand-img" />
+                </div>
+                <span className="brand-text">KEERTAN<span className="brand-dot">.DEV</span></span>
+              </div>
+              <button className="menu-close-btn" onClick={() => setMenuOpen(false)}>
+                ✕
+              </button>
+            </div>
+
+            <div className="mobile-menu-links">
+              <button onClick={() => navTo('about')} className="mobile-nav-item">
+                <span className="nav-num">01.</span> About Biography
+              </button>
+              <button onClick={() => navTo('experience')} className="mobile-nav-item">
+                <span className="nav-num">02.</span> Experience & Timeline
+              </button>
+              <button onClick={() => navTo('projects')} className="mobile-nav-item">
+                <span className="nav-num">03.</span> Featured Projects
+              </button>
+              <button onClick={() => navTo('skills')} className="mobile-nav-item">
+                <span className="nav-num">04.</span> Tech Skills Matrix
+              </button>
+              <button onClick={() => navTo('beyond')} className="mobile-nav-item">
+                <span className="nav-num">05.</span> Anime, Gaming & Culture
+              </button>
+              <button onClick={() => navTo('terminal')} className="mobile-nav-item">
+                <span className="nav-num">06.</span> Interactive Terminal
+              </button>
+              <button onClick={() => navTo('certifications')} className="mobile-nav-item">
+                <span className="nav-num">07.</span> Certifications & Badges
+              </button>
+
+              <button onClick={() => navTo('contact')} className="mobile-cta-btn">
+                <span>GET IN TOUCH</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
