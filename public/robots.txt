@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://portfolio-keertan004-7192s-projects.vercel.app/sitemap.xml
+Sitemap: https://portfolio-theta-six-7mnjt325h1.vercel.app/sitemap.xml
