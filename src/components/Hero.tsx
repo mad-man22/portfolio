@@ -147,7 +147,7 @@ export default function Hero() {
               <div className="holo-photo-container">
                 <img
                   src="/keertan-photo.jpg"
-                  alt="Keertan B.J."
+                  alt="Keertan BJ (Keertan B.J.) - Software Engineer & AI Architect"
                   className="holo-photo"
                 />
                 <div className="holo-overlay-scanline"></div>
